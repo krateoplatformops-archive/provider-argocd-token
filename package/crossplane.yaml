@@ -1,0 +1,14 @@
+apiVersion: meta.pkg.crossplane.io/v1alpha1
+kind: Provider
+metadata:
+  namespace: crossplane-system
+  name: xp-provider-argocd
+  annotations:
+    # A one sentence description of the package.
+    meta.crossplane.io/description: |
+      The Crossplane ArgoCD provider enables management of ArgoCD accounts tokens.
+    # A 'human-friendly' name for this package.
+    friendly-name.meta.crossplane.io: "ArgoCD Provider"
+spec:
+  controller:
+    image: ghcr.io/krateoplatformops/provider-argocd:0.1.0

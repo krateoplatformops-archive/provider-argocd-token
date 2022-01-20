@@ -1,0 +1,15 @@
+apiVersion: argocd.krateoplatformops.io/v1alpha1
+kind: ProviderConfig
+metadata:
+  name: provider-argocd-config
+spec:
+  serverAddr: argocd-server.argocd.svc:443
+  insecure: true
+  portForward: true
+  portForwardNamespace: argo-system
+  credentials:
+    source: Secret
+    secretRef:
+      namespace: argo-system
+      name: argocd-initial-admin-secret
+      key: password
