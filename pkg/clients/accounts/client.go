@@ -29,6 +29,7 @@ func GenerateToken(opts *TokenProviderOptions, name string, expiresIn int64) (st
 	if err != nil {
 		return "", err
 	}
+	cli.SetAuthToken(opts.AuthToken)
 
 	return cli.CreateTokenForAccount(name)
 }
@@ -44,6 +45,7 @@ type TokenProviderOptions struct {
 type TokenProvider interface {
 	CreateSession(username, password string) (string, error)
 	CreateTokenForAccount(name string) (string, error)
+	SetAuthToken(token string)
 }
 
 // NewTokenProvider creates a new ArgoCD token provider from a set of config options.
@@ -77,7 +79,11 @@ type tokenProvider struct {
 	httpClient *http.Client
 }
 
-func (tp tokenProvider) CreateSession(user, pass string) (string, error) {
+func (tp *tokenProvider) SetAuthToken(token string) {
+	tp.authToken = token
+}
+
+func (tp *tokenProvider) CreateSession(user, pass string) (string, error) {
 	data := map[string]string{
 		"username": user,
 		"password": pass,
@@ -121,15 +127,7 @@ func (tp tokenProvider) CreateSession(user, pass string) (string, error) {
 	return response["token"], nil
 }
 
-func (tp tokenProvider) CreateTokenForAccount(name string) (string, error) {
-	/*
-		data := map[string]string{}
-
-		bin, err := json.Marshal(data)
-		if err != nil {
-			return "", err
-		}
-	*/
+func (tp *tokenProvider) CreateTokenForAccount(name string) (string, error) {
 	url := fmt.Sprintf("%s/api/v1/account/%s/token", tp.serverAddr, name)
 
 	req, err := http.NewRequest(http.MethodPost, url, nil)
