@@ -139,6 +139,8 @@ func (tp tokenProvider) CreateTokenForAccount(name string) (string, error) {
 	req.Header.Set("Content-Type", "application/json; charset=UTF-8")
 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", tp.authToken))
 
+	debug(httputil.DumpRequestOut(req, true))
+
 	res, err := tp.httpClient.Do(req)
 	if err != nil {
 		return "", err
