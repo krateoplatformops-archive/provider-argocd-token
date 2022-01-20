@@ -11,4 +11,4 @@ metadata:
     friendly-name.meta.crossplane.io: "ArgoCD Tokens Provider"
 spec:
   controller:
-    image: ghcr.io/krateoplatformops/provider-argocd-token:0.1.0
+    image: ghcr.io/krateoplatformops/provider-argocd-token:0.1.1

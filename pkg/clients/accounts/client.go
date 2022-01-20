@@ -6,9 +6,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
-	"net/http/httputil"
+	"strings"
 )
 
 // Login do a login with username and password credentials and returns the auth token.
@@ -95,12 +96,12 @@ func (tp tokenProvider) CreateSession(user, pass string) (string, error) {
 		return "", err
 	}
 
-	//var url string
-	//if strings.HasPrefix("http", tp.ServerAddr) {
-	url := fmt.Sprintf("%s/api/v1/session", tp.ServerAddr)
-	//} else {
-	//	url = fmt.Sprintf("https://%s/api/v1/session", tp.ServerAddr)
-	//}
+	var url string
+	if strings.HasPrefix("http", tp.ServerAddr) {
+		url = fmt.Sprintf("%s/api/v1/session", tp.ServerAddr)
+	} else {
+		url = fmt.Sprintf("https://%s/api/v1/session", tp.ServerAddr)
+	}
 
 	req, err := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(bin))
 	if err != nil {
@@ -114,9 +115,23 @@ func (tp tokenProvider) CreateSession(user, pass string) (string, error) {
 	}
 	defer res.Body.Close()
 
-	debug(httputil.DumpResponse(res, true))
+	//debug(httputil.DumpResponse(res, true))
 
-	return "", nil
+	if res.StatusCode != http.StatusOK {
+		return "", fmt.Errorf("create argocd session request failed: %s", res.Status)
+	}
+
+	body, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		return "", err
+	}
+
+	var response map[string]string
+	if err := json.Unmarshal(body, &response); err != nil {
+		return "", err
+	}
+
+	return response["token"], nil
 }
 
 func (tp tokenProvider) CreateTokenForAccount(name string) (string, error) {

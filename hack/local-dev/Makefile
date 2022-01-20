@@ -101,6 +101,9 @@ cr.token:
 	--namespace crossplane-system --docker-server=ghcr.io \
 	--docker-password=$(GITHUB_TOKEN) --docker-username=$(ORG_NAME)
 
+try: install.crossplane install.argocd cr.token
+	@$(KUBECTL) apply -f ./hack/provider.yaml
+
 # proxy:
 # 	kubectl port-forward svc/argocd-server -n argo-system 8080:443
 

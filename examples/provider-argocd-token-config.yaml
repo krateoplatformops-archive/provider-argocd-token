@@ -3,10 +3,7 @@ kind: ProviderConfig
 metadata:
   name: provider-argocd-config
 spec:
-  serverAddr: argocd-server.argocd.svc:443
-  insecure: true
-  portForward: true
-  portForwardNamespace: argo-system
+  serverAddr: http://argocd-server.argo-system.svc:443
   credentials:
     source: Secret
     secretRef:
