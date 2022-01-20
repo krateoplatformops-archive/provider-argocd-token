@@ -53,12 +53,12 @@ func UseProviderConfig(ctx context.Context, k client.Client, mg resource.Managed
 		return nil, err
 	}
 
-	_, err = accounts.Login(opts, "admin", pass)
+	token, err := accounts.Login(opts, "admin", pass)
 	if err != nil {
 		return nil, err
 	}
 
-	//opts.AuthToken = token
+	opts.AuthToken = token
 
 	return opts, nil
 }

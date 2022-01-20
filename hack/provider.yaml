@@ -11,7 +11,7 @@ kind: Provider
 metadata:
   name: crossplane-provider-argocd-token
 spec:
-  package: 'ghcr.io/krateoplatformops/crossplane-provider-argocd-token:0.1.1'
+  package: 'ghcr.io/krateoplatformops/crossplane-provider-argocd-token:0.1.2'
   packagePullPolicy: Always
   packagePullSecrets: 
   - name: cr-token

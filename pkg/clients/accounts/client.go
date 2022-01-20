@@ -9,7 +9,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
-	"strings"
+	"net/http/httputil"
 )
 
 // Login do a login with username and password credentials and returns the auth token.
@@ -19,12 +19,7 @@ func Login(opts *TokenProviderOptions, user, pass string) (string, error) {
 		return "", err
 	}
 
-	_, err = cli.CreateSession(user, pass)
-	if err != nil {
-		return "", err
-	}
-
-	return "", nil
+	return cli.CreateSession(user, pass)
 }
 
 // GenerateToken generate a token for the account with the specified name.
@@ -35,18 +30,14 @@ func GenerateToken(opts *TokenProviderOptions, name string, expiresIn int64) (st
 		return "", err
 	}
 
-	res, err := cli.CreateTokenForAccount(name)
-	if err != nil {
-		return "", err
-	}
-
-	return res, nil
+	return cli.CreateTokenForAccount(name)
 }
 
 // TokenProviderOptions hold address, security, and other settings for the API client.
 type TokenProviderOptions struct {
 	ServerAddr string
 	UserAgent  string
+	AuthToken  string
 }
 
 // TokenProvider defines an interface for interaction with an Argo CD server.
@@ -96,12 +87,7 @@ func (tp tokenProvider) CreateSession(user, pass string) (string, error) {
 		return "", err
 	}
 
-	var url string
-	if strings.HasPrefix("http", tp.ServerAddr) {
-		url = fmt.Sprintf("%s/api/v1/session", tp.ServerAddr)
-	} else {
-		url = fmt.Sprintf("https://%s/api/v1/session", tp.ServerAddr)
-	}
+	url := fmt.Sprintf("%s/api/v1/session", tp.ServerAddr)
 
 	req, err := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(bin))
 	if err != nil {
@@ -135,7 +121,45 @@ func (tp tokenProvider) CreateSession(user, pass string) (string, error) {
 }
 
 func (tp tokenProvider) CreateTokenForAccount(name string) (string, error) {
-	return "", nil
+	/*
+		data := map[string]string{}
+
+		bin, err := json.Marshal(data)
+		if err != nil {
+			return "", err
+		}
+	*/
+	url := fmt.Sprintf("%s/api/v1/account/%s/token", tp.ServerAddr, name)
+
+	req, err := http.NewRequest(http.MethodPost, url, nil)
+	if err != nil {
+		return "", err
+	}
+	req.Header.Set("Content-Type", "application/json; charset=UTF-8")
+
+	res, err := tp.httpClient.Do(req)
+	if err != nil {
+		return "", err
+	}
+	defer res.Body.Close()
+
+	debug(httputil.DumpResponse(res, true))
+
+	if res.StatusCode != http.StatusOK {
+		return "", fmt.Errorf("create argocd account token request failed: %s", res.Status)
+	}
+
+	body, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		return "", err
+	}
+
+	var response map[string]string
+	if err := json.Unmarshal(body, &response); err != nil {
+		return "", err
+	}
+
+	return response["token"], nil
 }
 
 func debug(data []byte, err error) {
