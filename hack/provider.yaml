@@ -9,10 +9,10 @@ spec:
 apiVersion: pkg.crossplane.io/v1
 kind: Provider
 metadata:
-  name: provider-argocd-login
+  name: crossplane-provider-argocd-token
 spec:
-  package: 'ghcr.io/projectkerberus/xp-provider-argocd-login:0.2.0'
-  packagePullPolicy: IfNotPresent
+  package: 'ghcr.io/krateoplatformops/crossplane-provider-argocd-token:0.1.0'
+  packagePullPolicy: Always
   packagePullSecrets: 
   - name: cr-token
   controllerConfigRef:

@@ -2,19 +2,25 @@
 SHELL := /bin/bash
 
 # Look for a .env file, and if present, set make variables from it.
-ifneq (,$(wildcard ../../.env))
-	include ../../.env
-	export $(shell sed 's/=.*//' ../../.env)
+ifneq (,$(wildcard ./.env))
+	include ./.env
+	export $(shell sed 's/=.*//' ./.env)
 endif
 
 KIND_CLUSTER_NAME ?= local-dev
 KUBECONFIG ?= $(HOME)/.kube/config
 
 # Project name
-PROJECT_NAME := provider-argocd
+PROJECT_NAME := provider-argocd-token
 # Git Owner and Vendor Company
 ORG_NAME := krateoplatformops
 VENDOR := Kiratech
+
+
+VERSION := $(shell git describe --tags --abbrev=0 | sed -n "s/^v\(.*\)$$/\1/p")
+ifndef VERSION
+VERSION := 0.0.0
+endif
 
 # Build Target
 TARGET_OS := linux
@@ -39,6 +45,19 @@ help: Makefile
 	@sed -n 's/^##//p' $< | column -t -s ':' |  sed -e 's/^/ /'
 	@echo
 
+
+.PHONY: print.vars
+## print.vars: Print all the build variables
+print.vars:
+	@echo VENDOR=$(VENDOR)
+	@echo ORG_NAME=$(ORG_NAME)
+	@echo PROJECT_NAME=$(PROJECT_NAME)
+	@echo GITHUB_TOKEN=$(GITHUB_TOKEN)
+	@echo TARGET_OS=$(TARGET_OS)
+	@echo TARGET_ARCH=$(TARGET_ARCH)
+	@echo VERSION=$(VERSION)
+	@echo DOCKER_REGISTRY=$(DOCKER_REGISTRY)
+
 ## kind.up: Starts a KinD cluster for local development
 kind.up:
 	@$(KIND) get kubeconfig --name $(KIND_CLUSTER_NAME) >/dev/null 2>&1 || $(KIND) create cluster --name=$(KIND_CLUSTER_NAME)
@@ -59,6 +78,11 @@ install.argocd:
 kind.down:
 	@$(KIND) delete cluster --name=$(KIND_CLUSTER_NAME)
 
+
+## install.provider: Install this provider using HELM
+install.provider:
+	@$(KUBECTL) crossplane install provider "$(DOCKER_REGISTRY)/crossplane-$(PROJECT_NAME):$(VERSION)"
+
 ## install.provider.helm: Install this provider using HELM
 install.provider.argocd:
 	@$(KUBECTL) create namespace argo-system || true
@@ -70,10 +94,11 @@ install.provider.argocd:
 	helm install $(PROJECT_NAME) --namespace argo-system krateo-runtime/provider-argocd
 
 
-ghcr.secret:
-	@$(KUBECTL) create namespace argo-system || true
-	$(KUBECTL) create secret docker-registry cr-token \
-	--namespace argo-system --docker-server=ghcr.io \
+.PHONY: cr.token
+## cr.token: Create the secret with the backup container registry credentials
+cr.token:
+	@$(KUBECTL) create secret docker-registry cr-token \
+	--namespace crossplane-system --docker-server=ghcr.io \
 	--docker-password=$(GITHUB_TOKEN) --docker-username=$(ORG_NAME)
 
 # proxy:

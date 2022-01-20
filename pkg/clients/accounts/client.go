@@ -9,7 +9,6 @@ import (
 	"log"
 	"net/http"
 	"net/http/httputil"
-	"strings"
 )
 
 // Login do a login with username and password credentials and returns the auth token.
@@ -96,12 +95,12 @@ func (tp tokenProvider) CreateSession(user, pass string) (string, error) {
 		return "", err
 	}
 
-	var url string
-	if strings.HasPrefix("http", tp.ServerAddr) {
-		url = fmt.Sprintf("%s/api/v1/session", tp.ServerAddr)
-	} else {
-		url = fmt.Sprintf("https://%s/api/v1/session", tp.ServerAddr)
-	}
+	//var url string
+	//if strings.HasPrefix("http", tp.ServerAddr) {
+	url := fmt.Sprintf("%s/api/v1/session", tp.ServerAddr)
+	//} else {
+	//	url = fmt.Sprintf("https://%s/api/v1/session", tp.ServerAddr)
+	//}
 
 	req, err := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(bin))
 	if err != nil {

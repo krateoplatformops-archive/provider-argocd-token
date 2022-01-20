@@ -49,3 +49,4 @@ cover.out
 /vendor
 /.vendor-new
 .tool-versions
+**/*.xpkg

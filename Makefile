@@ -62,8 +62,6 @@ print.vars:
 	@echo TARGET_ARCH=$(TARGET_ARCH)
 	@echo DOCKER_REGISTRY=$(DOCKER_REGISTRY)
 
-build: generate test
-	@CGO_ENABLED=0 GOOS=$(TARGET_OS) GOARCH=$(TARGET_ARCH) go build -a -o ./bin/provider cmd/provider/main.go
 
 .PHONY: dev
 ## dev: Run the controller in debug mode
@@ -117,6 +115,16 @@ image.build:
 ## image.push: Push the Docker image to the Github Registry
 image.push:
 	@$(DOCKER) push "$(DOCKER_REGISTRY)/$(PROJECT_NAME):$(VERSION)"
+
+build.provider:
+	cd ./package && \
+	rm -f *.xpkg && \
+	pwd && \
+	$(KUBECTL) crossplane build provider
+
+push.provider:
+	cd ./package && \
+	$(KUBECTL) crossplane push provider "$(DOCKER_REGISTRY)/crossplane-$(PROJECT_NAME):$(VERSION)"
 
 .PHONY: ghcr.secret
 ghcr.secret:
