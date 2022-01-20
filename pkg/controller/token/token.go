@@ -68,6 +68,8 @@ func (c *connector) Connect(ctx context.Context, mg resource.Managed) (managed.E
 		return nil, err
 	}
 
+	c.log.Debug("Created session", "token", cfg.AuthToken)
+
 	return &external{kube: c.kube, log: c.log, cfg: cfg}, nil
 }
 

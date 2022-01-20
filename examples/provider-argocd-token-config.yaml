@@ -3,7 +3,7 @@ kind: ProviderConfig
 metadata:
   name: provider-argocd-config
 spec:
-  serverAddr: argocd-server.argo-system.svc:443
+  serverAddr: https://argocd-server.argo-system.svc:443
   credentials:
     source: Secret
     secretRef:

@@ -51,14 +51,14 @@ func NewTokenProvider(opts *TokenProviderOptions) (TokenProvider, error) {
 	var res tokenProvider
 
 	if opts.UserAgent != "" {
-		res.UserAgent = opts.UserAgent
+		res.userAgent = opts.UserAgent
 	}
 
 	if opts.ServerAddr != "" {
-		res.ServerAddr = opts.ServerAddr
+		res.serverAddr = opts.ServerAddr
 	}
 	// Make sure we got the server address and auth token from somewhere
-	if res.ServerAddr == "" {
+	if res.serverAddr == "" {
 		return nil, errors.New("unspecified server address for Argo CD")
 	}
 
@@ -71,8 +71,9 @@ func NewTokenProvider(opts *TokenProviderOptions) (TokenProvider, error) {
 }
 
 type tokenProvider struct {
-	ServerAddr string
-	UserAgent  string
+	serverAddr string
+	userAgent  string
+	authToken  string
 	httpClient *http.Client
 }
 
@@ -87,7 +88,7 @@ func (tp tokenProvider) CreateSession(user, pass string) (string, error) {
 		return "", err
 	}
 
-	url := fmt.Sprintf("%s/api/v1/session", tp.ServerAddr)
+	url := fmt.Sprintf("%s/api/v1/session", tp.serverAddr)
 
 	req, err := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(bin))
 	if err != nil {
@@ -129,13 +130,14 @@ func (tp tokenProvider) CreateTokenForAccount(name string) (string, error) {
 			return "", err
 		}
 	*/
-	url := fmt.Sprintf("%s/api/v1/account/%s/token", tp.ServerAddr, name)
+	url := fmt.Sprintf("%s/api/v1/account/%s/token", tp.serverAddr, name)
 
 	req, err := http.NewRequest(http.MethodPost, url, nil)
 	if err != nil {
 		return "", err
 	}
 	req.Header.Set("Content-Type", "application/json; charset=UTF-8")
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", tp.authToken))
 
 	res, err := tp.httpClient.Do(req)
 	if err != nil {
