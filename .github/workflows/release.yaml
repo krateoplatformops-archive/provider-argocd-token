@@ -15,6 +15,10 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Set tag
+        run: echo "::set-output name=VERSION_TAG::$(git describe --dirty --always --tags | sed 's/-/./2' | sed 's/-/./2' )"
+        id: tagger
+
       - name: Build
         run: make image.build
       
@@ -35,9 +39,9 @@ jobs:
         with:
           channel: ${{ github.event.inputs.channel }}
           version: ${{ github.event.inputs.version }}
-          command: build provider -f package --name=xpkg-provider-argocd-token
+          command: build provider -f package --name=crossplane-${{ github.event.repository.name }}
         
       - name: Push xpkg
         uses: crossplane-contrib/xpkg-action@master
         with:
-          command: push provider -f package/xpkg-provider-argocd-token.xpkg ghcr.io/krateoplatformops/xpkg-provider-argocd-token:v0.1.8
+          command: push provider -f package/crossplane-${{ github.event.repository.name }}.xpkg ghcr.io/${{ github.event.repository.owner.name }}/${{ github.event.repository.name }}:${{ steps.tagger.outputs.VERSION_TAG }}
