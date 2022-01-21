@@ -29,3 +29,15 @@ jobs:
         run: make image.push
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Build xpkg
+        uses: crossplane-contrib/xpkg-action@master
+        with:
+          channel: ${{ github.event.inputs.channel }}
+          version: ${{ github.event.inputs.version }}
+          command: build provider -f package --name=xpkg-provider-argocd-token
+        
+      - name: Push xpkg
+        uses: crossplane-contrib/xpkg-action@master
+        with:
+          command: push provider -f package/xpkg-provider-argocd-token.xpkg ghcr.io/krateoplatformops/xpkg-provider-argocd-token:v0.1.7

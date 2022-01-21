@@ -116,12 +116,14 @@ image.build:
 image.push:
 	@$(DOCKER) push "$(DOCKER_REGISTRY)/$(PROJECT_NAME):$(VERSION)"
 
+.PHONY: build.provider
 build.provider:
 	cd ./package && \
 	rm -f *.xpkg && \
 	pwd && \
 	$(KUBECTL) crossplane build provider
 
+.PHONY: push.provider
 push.provider:
 	cd ./package && \
 	$(KUBECTL) crossplane push provider "$(DOCKER_REGISTRY)/crossplane-$(PROJECT_NAME):$(VERSION)"
