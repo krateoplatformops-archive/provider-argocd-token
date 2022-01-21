@@ -10,7 +10,7 @@ endif
 KIND_CLUSTER_NAME ?= local-dev
 KUBECONFIG ?= $(HOME)/.kube/config
 
-VERSION := $(shell git describe --tags --abbrev=0 | sed -n "s/^v\(.*\)$$/\1/p")
+VERSION := $(shell git describe --dirty --always --tags | sed 's/-/./2' | sed 's/-/./2')
 ifndef VERSION
 VERSION := 0.0.0
 endif
