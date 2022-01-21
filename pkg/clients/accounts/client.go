@@ -12,6 +12,10 @@ import (
 	"net/http/httputil"
 )
 
+const (
+	defaultUserAgent = "Krateo Platfomops"
+)
+
 // Login do a login with username and password credentials and returns the auth token.
 func Login(opts *TokenProviderOptions, user, pass string) (string, error) {
 	cli, err := NewTokenProvider(opts)
@@ -34,11 +38,12 @@ func GenerateToken(opts *TokenProviderOptions, name string, expiresIn int64) (st
 	return cli.CreateTokenForAccount(name)
 }
 
-// TokenProviderOptions hold address, security, and other settings for the API client.
+// TokenProviderOptions hold url, auth token for the API client.
 type TokenProviderOptions struct {
-	ServerAddr string
-	UserAgent  string
-	AuthToken  string
+	ServerUrl   string
+	UserAgent   string
+	AuthToken   string
+	DebugClient bool
 }
 
 // TokenProvider defines an interface for interaction with an Argo CD server.
@@ -54,15 +59,19 @@ func NewTokenProvider(opts *TokenProviderOptions) (TokenProvider, error) {
 
 	if opts.UserAgent != "" {
 		res.userAgent = opts.UserAgent
+	} else {
+		res.userAgent = defaultUserAgent
 	}
 
-	if opts.ServerAddr != "" {
-		res.serverAddr = opts.ServerAddr
+	if opts.ServerUrl != "" {
+		res.serverAddr = opts.ServerUrl
 	}
 	// Make sure we got the server address and auth token from somewhere
 	if res.serverAddr == "" {
-		return nil, errors.New("unspecified server address for Argo CD")
+		return nil, errors.New("unspecified server url for Argo CD")
 	}
+
+	res.debugClient = opts.DebugClient
 
 	res.httpClient = &http.Client{}
 	res.httpClient.Transport = &http.Transport{
@@ -73,10 +82,11 @@ func NewTokenProvider(opts *TokenProviderOptions) (TokenProvider, error) {
 }
 
 type tokenProvider struct {
-	serverAddr string
-	userAgent  string
-	authToken  string
-	httpClient *http.Client
+	serverAddr  string
+	userAgent   string
+	authToken   string
+	debugClient bool
+	httpClient  *http.Client
 }
 
 func (tp *tokenProvider) SetAuthToken(token string) {
@@ -102,13 +112,19 @@ func (tp *tokenProvider) CreateSession(user, pass string) (string, error) {
 	}
 	req.Header.Set("Content-Type", "application/json; charset=UTF-8")
 
+	if tp.debugClient {
+		debug(httputil.DumpRequestOut(req, true))
+	}
+
 	res, err := tp.httpClient.Do(req)
 	if err != nil {
 		return "", err
 	}
 	defer res.Body.Close()
 
-	//debug(httputil.DumpResponse(res, true))
+	if tp.debugClient {
+		debug(httputil.DumpResponse(res, true))
+	}
 
 	if res.StatusCode != http.StatusOK {
 		return "", fmt.Errorf("create argocd session request failed: %s", res.Status)
@@ -137,7 +153,9 @@ func (tp *tokenProvider) CreateTokenForAccount(name string) (string, error) {
 	req.Header.Set("Content-Type", "application/json; charset=UTF-8")
 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", tp.authToken))
 
-	debug(httputil.DumpRequestOut(req, true))
+	if tp.debugClient {
+		debug(httputil.DumpRequestOut(req, true))
+	}
 
 	res, err := tp.httpClient.Do(req)
 	if err != nil {
@@ -145,7 +163,9 @@ func (tp *tokenProvider) CreateTokenForAccount(name string) (string, error) {
 	}
 	defer res.Body.Close()
 
-	debug(httputil.DumpResponse(res, true))
+	if tp.debugClient {
+		debug(httputil.DumpResponse(res, true))
+	}
 
 	if res.StatusCode != http.StatusOK {
 		return "", fmt.Errorf("create argocd account token request failed: %s", res.Status)

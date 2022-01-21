@@ -17,27 +17,16 @@ type ProviderCredentials struct {
 
 // A ProviderConfigSpec defines the desired state of a ProviderConfig.
 type ProviderConfigSpec struct {
-	// ServerAddr of the argocd instance
-	ServerAddr string `json:"serverAddr"`
+	// ServerUrl of the argocd instance
+	ServerUrl string `json:"serverUrl"`
 
-	// PlainText specifies whether to use http vs https
+	// UserAgent request header to identify your client calls.
 	// +optional
-	PlainText *bool `json:"plainText,omitempty"`
+	UserAgent string `json:"userAgent,omitempty"`
 
-	// Insecure specifies whether to disable strict tls validation
+	// DebugClient is true dumps your client requests and responses.
 	// +optional
-	Insecure *bool `json:"insecure,omitempty"`
-
-	// PortForward specifies whether to use port forwarding
-	// +optional
-	PortForward *bool `json:"portForward,omitempty"`
-
-	// PortForwardNamespace specifies the port forwarding namespace
-	// +optional
-	PortForwardNamespace string `json:"portForwardNamespace,omitempty"`
-
-	// InitialAdminPasswordRef specifies the initial admin password
-	// InitialAdminPasswordRef *SecretReference `json:"initialAdminPasswordRef,omitempty"`
+	DebugClient *bool `json:"debugClient,omitempty"`
 
 	// Credentials required to authenticate to this provider.
 	Credentials *ProviderCredentials `json:"credentials,omitempty"`

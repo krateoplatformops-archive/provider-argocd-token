@@ -65,10 +65,6 @@ spec:
                   account:
                     description: Account name
                     type: string
-                  expiresIn:
-                    description: 'ExpiresIn duration before the token will expire.
-                      (Default: No expiration)'
-                    type: string
                   id:
                     description: ID optional token id. Fall back to uuid if not value
                       specified
@@ -93,7 +89,6 @@ spec:
                     type: object
                 required:
                 - account
-                - writeTokenSecretToRef
                 type: object
               providerConfigRef:
                 default:

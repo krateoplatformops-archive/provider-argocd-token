@@ -97,23 +97,17 @@ spec:
                 required:
                 - source
                 type: object
-              insecure:
-                description: Insecure specifies whether to disable strict tls validation
+              debugClient:
+                description: DebugClient is true dumps your client requests and responses.
                 type: boolean
-              plainText:
-                description: PlainText specifies whether to use http vs https
-                type: boolean
-              portForward:
-                description: PortForward specifies whether to use port forwarding
-                type: boolean
-              portForwardNamespace:
-                description: PortForwardNamespace specifies the port forwarding namespace
+              serverUrl:
+                description: ServerUrl of the argocd instance
                 type: string
-              serverAddr:
-                description: ServerAddr of the argocd instance
+              userAgent:
+                description: UserAgent request header to identify your client calls.
                 type: string
             required:
-            - serverAddr
+            - serverUrl
             type: object
           status:
             description: A ProviderConfigStatus reflects the observed state of a ProviderConfig.

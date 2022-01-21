@@ -45,7 +45,9 @@ func UseProviderConfig(ctx context.Context, k client.Client, mg resource.Managed
 	}
 
 	opts := &accounts.TokenProviderOptions{
-		ServerAddr: pc.Spec.ServerAddr,
+		ServerUrl:   pc.Spec.ServerUrl,
+		UserAgent:   pc.Spec.UserAgent,
+		DebugClient: isBoolPtrEqualToBool(pc.Spec.DebugClient, true),
 	}
 
 	pass, err := GetInitialAdminPassword(ctx, k, pc)
@@ -107,4 +109,13 @@ func SaveAdminToken(ctx context.Context, k client.Client, pc *v1alpha1.ProviderC
 	}
 
 	return SetSecret(ctx, k, csr.DeepCopy(), token)
+}
+
+// isBoolPtrEqualToBool compares a *bool with bool
+func isBoolPtrEqualToBool(bp *bool, b bool) bool {
+	if bp == nil {
+		return false
+	}
+
+	return (*bp == b)
 }

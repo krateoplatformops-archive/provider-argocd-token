@@ -23,7 +23,7 @@ type TokenParameters struct {
 
 	// ExpiresIn duration before the token will expire. (Default: No expiration)
 	// +optional
-	ExpiresIn string `json:"expiresIn,omitempty"`
+	// ExpiresIn string `json:"expiresIn,omitempty"`
 
 	WriteTokenSecretToRef xpv1.SecretKeySelector `json:"writeTokenSecretToRef"`
 }

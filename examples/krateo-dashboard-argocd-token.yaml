@@ -9,7 +9,6 @@ metadata:
   name: krateo-dashboard-argocd-token
 spec:
   forProvider:
-    expiresIn: 0s
     account: krateo-dashboard
     writeTokenSecretToRef:
       name: krateo-dashboard-argocd-token
