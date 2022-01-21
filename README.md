@@ -10,7 +10,13 @@ The provider that is built from the source code in this repository adds the foll
 
 ## Getting Started
 
-With ArgoCD installed in your cluster, for example...
+With Crossplane and ArgoCD installed in your cluster:
+
+```sh
+$ helm repo add crossplane-stable https://charts.crossplane.io/stable
+$ helm repo update
+$ helm install crossplane --namespace crossplane-system crossplane-stable/crossplane
+```
 
 ```sh
 $ kubectl create namespace argo-system
@@ -78,6 +84,15 @@ spec:
   providerConfigRef:
     name: provider-argocd-config
 EOF
+```
+
+### After a while check if the API token is created
+
+```sh
+$ kubectl get secrets/krateo-dashboard-argocd-token -n krateo-system \
+   --template='{{.data.authToken | base64decode}}'
+
+eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJkOWZkNDJiYi05ZGU4LTRmMGUtYTA...
 ```
 
 ---
