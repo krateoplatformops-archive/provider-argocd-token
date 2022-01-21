@@ -17,35 +17,31 @@ $ kubectl create namespace argo-system
 $ kubectl apply -n argo-system -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
 ```
 
-### Configure this operator with `serverAddr` pointing to an ArgoCD instance
+### Configure this operator with `serverUrl` pointing to an ArgoCD instance
 
 ```sh
+$ cat <<EOF | kubectl apply -f -
 apiVersion: argocd.krateoplatformops.io/v1alpha1
 kind: ProviderConfig
 metadata:
   name: provider-argocd-config
 spec:
-  serverAddr: argocd-server.argocd.svc:443
-  insecure: true
-  portForward: true
-  portForwardNamespace: argo-system
+  serverUrl: https://argocd-server.argo-system.svc:443
   credentials:
     source: Secret
     secretRef:
       namespace: argo-system
       name: argocd-initial-admin-secret
       key: password
+EOF
 ```
 
-```sh
-$ kubectl apply -f examples/provider-argocd-token-config.yaml
-```
-
-### Create a new user
+### Create a new ArgoCD account
 
 Following the steps in the [official ArgoCD documentation](https://argo-cd.readthedocs.io/en/stable/operator-manual/user-management/#create-new-user) you can create a new user defining it in the `argo-cm` ConfigMap:
 
-```yaml
+```sh
+$ cat <<EOF | kubectl apply -f -
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -56,6 +52,7 @@ metadata:
     app.kubernetes.io/part-of: argocd
 data:
   accounts.krateo-dashboard: apiKey, login
+EOF
 ```
 
 Each user might have two capabilities:
@@ -63,13 +60,10 @@ Each user might have two capabilities:
 - apiKey: allows generating authentication tokens for API access
 - login: allows to login using UI
 
-```sh
-$ kubectl apply -f examples/argocd-cm.yaml
-```
-
 ### Create an API token without expiration that can be used by the defined user
 
-```yaml
+```sh
+$ cat <<EOF | kubectl apply -f -
 apiVersion: argocd.krateoplatformops.io/v1alpha1
 kind: Token
 metadata:
@@ -83,22 +77,10 @@ spec:
       namespace: krateo-system
   providerConfigRef:
     name: provider-argocd-config
-```
-
-```sh
-$ kubectl apply -f examples/krateo-dashboard-argocd-token.yaml
-```
-
-## Installing this provider using Helm
-
-```sh
-$ helm repo add krateo-runtime-providers https://krateoplatformops.github.io/krateo-runtime-providers 
-$ helm repo update
-$ helm install provider-argocd-token --namespace $(NAMESPACE) krateo-runtime-providers/argocd-token
+EOF
 ```
 
 ---
-
 
 ## Contributing
 
