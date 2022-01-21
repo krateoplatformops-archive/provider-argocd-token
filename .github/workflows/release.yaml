@@ -15,10 +15,6 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Set tag
-        run: echo "::set-output name=VERSION_TAG::$(git describe --dirty --always --tags | sed 's/-/./2' | sed 's/-/./2' )"
-        id: tagger
-
       - name: Build
         run: make image.build
       
@@ -33,6 +29,13 @@ jobs:
         run: make image.push
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Set tag
+        run: echo "::set-output name=VERSION_TAG::$(git describe --dirty --always --tags | sed 's/-/./2' | sed 's/-/./2' )"
+        id: tagger
+
+      - name: Replace Version in xpkg manifest
+        run: sed -i 's/VERSION/${{ steps.tagger.outputs.VERSION_TAG }}/g' package/crossplane.yaml
       
       - name: Build xpkg
         uses: crossplane-contrib/xpkg-action@master
