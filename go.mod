@@ -52,5 +52,3 @@ replace (
 )
 
 replace k8s.io/pod-security-admission => k8s.io/pod-security-admission v0.22.2
-
-//replace k8s.io/kube-openapi => k8s.io/kube-openapi v0.0.0-20210323165736-1a6458611d18
