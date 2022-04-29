@@ -1,7 +1,7 @@
-apiVersion: argocd.krateoplatformops.io/v1alpha1
+apiVersion: argocd.krateo.io/v1alpha1
 kind: ProviderConfig
 metadata:
-  name: provider-argocd-config
+  name: provider-argocd-token-config
 spec:
   serverUrl: https://argocd-server.argo-system.svc:443
   credentials:

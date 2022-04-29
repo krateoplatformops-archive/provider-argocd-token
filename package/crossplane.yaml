@@ -6,9 +6,9 @@ metadata:
   annotations:
     # A one sentence description of the package.
     meta.crossplane.io/description: |
-      The Crossplane ArgoCD provider enables management of ArgoCD accounts tokens.
+      The Krateo PlatformOps ArgoCD provider enables creation of ArgoCD accounts tokens.
     # A 'human-friendly' name for this package.
-    friendly-name.meta.crossplane.io: "ArgoCD Tokens Provider"
+    friendly-name.meta.crossplane.io: "Krateo PlatformOps ArgoCD Tokens Provider"
 spec:
   controller:
     image: ghcr.io/krateoplatformops/provider-argocd-token:VERSION

@@ -34,7 +34,7 @@ KIND=$(shell which kind)
 LINT=$(shell which golangci-lint)
 KUBECTL=$(shell which kubectl)
 DOCKER=$(shell which docker)
-
+SED=$(shell which sed)
 
 .DEFAULT_GOAL := help
 
@@ -67,14 +67,12 @@ print.vars:
 ## dev: Run the controller in debug mode
 dev: generate
 	$(KUBECTL) apply -f package/crds/ -R
-	go run cmd/provider/main.go -d
+	go run cmd/main.go -d
 
 .PHONY: generate
 ## generate: Generate all CRDs
 generate: tidy
 	go generate ./...
-	@find package/crds -name *.yaml -exec sed -i.sed -e '1,2d' {} \;
-	@find package/crds -name *.yaml.sed -delete
 
 .PHONY: tidy
 tidy:
@@ -116,24 +114,29 @@ image.build:
 image.push:
 	@$(DOCKER) push "$(DOCKER_REGISTRY)/$(PROJECT_NAME):$(VERSION)"
 
-.PHONY: build.provider
-build.provider:
-	cd ./package && \
-	rm -f *.xpkg && \
-	pwd && \
-	$(KUBECTL) crossplane build provider
 
-.PHONY: push.provider
-push.provider:
-	cd ./package && \
-	$(KUBECTL) crossplane push provider "$(DOCKER_REGISTRY)/crossplane-$(PROJECT_NAME):$(VERSION)"
-
-.PHONY: ghcr.secret
-ghcr.secret:
+.PHONY: cr.secret
+cr.secret:
 	$(KUBECTL) create secret docker-registry cr-token \
 	--namespace crossplane-system --docker-server=ghcr.io \
 	--docker-password=$(GITHUB_TOKEN) --docker-username=$(ORG_NAME)
 
-.PHONY: docker.login
-docker.login:
-	docker login ghcr.io --username $(ORG_NAME) --password $(GITHUB_TOKEN)
+
+## install.crossplane: Install Crossplane into the local KinD cluster
+install.crossplane:
+	$(KUBECTL) create namespace crossplane-system || true
+	helm repo add crossplane-stable https://charts.crossplane.io/stable
+	helm repo update
+	helm install crossplane --namespace crossplane-system crossplane-stable/crossplane
+
+
+## install.argocd: Install ArgoCD into the local KinD cluster
+install.argocd:
+	$(KUBECTL) create namespace argo-system || true
+	$(KUBECTL) apply -n argo-system -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+
+
+.PHONY: install.provider
+ ## install.provider: Install this provider
+install.provider: cr.secret
+	@$(SED) 's/VERSION/$(VERSION)/g' ./examples/provider.yaml | $(KUBECTL) apply -f -

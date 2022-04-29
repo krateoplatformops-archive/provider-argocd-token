@@ -40,12 +40,14 @@ kind: Provider
 metadata:
   name: crossplane-provider-argocd-token
 spec:
-  package: 'ghcr.io/krateoplatformops/crossplane-provider-argocd-token:0.1.14'
+  package: 'ghcr.io/krateoplatformops/crossplane-provider-argocd-token:VERSION'
   packagePullPolicy: IfNotPresent
   controllerConfigRef:
     name: debug-config
 EOF
 ```
+
+Replace `VERSION` tag with the desired release.
 
 ### Configure this operator with `serverUrl` pointing to an ArgoCD instance
 
@@ -54,7 +56,7 @@ $ cat <<EOF | kubectl apply -f -
 apiVersion: argocd.krateoplatformops.io/v1alpha1
 kind: ProviderConfig
 metadata:
-  name: provider-argocd-config
+  name: provider-argocd-token-config
 spec:
   serverUrl: https://argocd-server.argo-system.svc:443
   credentials:
@@ -106,7 +108,7 @@ spec:
       key: authToken
       namespace: krateo-system
   providerConfigRef:
-    name: provider-argocd-config
+    name: provider-argocd-token-config
 EOF
 ```
 

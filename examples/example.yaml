@@ -3,7 +3,7 @@ kind: Namespace
 metadata:
   name: krateo-system
 ---
-apiVersion: argocd.krateoplatformops.io/v1alpha1
+apiVersion: argocd.krateo.io/v1alpha1
 kind: Token
 metadata:
   name: krateo-dashboard-argocd-token
@@ -15,4 +15,4 @@ spec:
       key: authToken
       namespace: krateo-system
   providerConfigRef:
-    name: provider-argocd-config
+    name: provider-argocd-token-config

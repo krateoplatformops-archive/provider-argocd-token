@@ -9,7 +9,7 @@ import (
 
 // Package type metadata.
 const (
-	Group   = "argocd.krateoplatformops.io"
+	Group   = "argocd.krateo.io"
 	Version = "v1alpha1"
 )
 
