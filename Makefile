@@ -99,7 +99,7 @@ kind.down:
 .PHONY: image.build
 ## image.build: Build the Docker image
 image.build:
-	@$(DOCKER) build -t "$(DOCKER_REGISTRY)/$(PROJECT_NAME):$(VERSION)" \
+	@$(DOCKER) build -t "$(DOCKER_REGISTRY)/$(PROJECT_NAME)-controller:$(VERSION)" \
 	--build-arg METRICS_PORT=9090 \
 	--build-arg VERSION="$(VERSION)" \
 	--build-arg BUILD_DATE="$(BUILD_DATE)" \
