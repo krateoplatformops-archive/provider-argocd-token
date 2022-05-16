@@ -112,7 +112,7 @@ image.build:
 .PHONY: image.push
 ## image.push: Push the Docker image to the Github Registry
 image.push:
-	@$(DOCKER) push "$(DOCKER_REGISTRY)/$(PROJECT_NAME):$(VERSION)"
+	@$(DOCKER) push "$(DOCKER_REGISTRY)/$(PROJECT_NAME)-controller:$(VERSION)"
 
 
 .PHONY: cr.secret
