@@ -26,25 +26,7 @@ $ kubectl apply -n argo-system -f https://raw.githubusercontent.com/argoproj/arg
 ### How to install this provider
 
 ```sh
-$ cat <<EOF | kubectl apply -f -
-apiVersion: pkg.crossplane.io/v1alpha1
-kind: ControllerConfig
-metadata:
-  name: debug-config
-spec:
-  args:
-    - --debug
----
-apiVersion: pkg.crossplane.io/v1
-kind: Provider
-metadata:
-  name: crossplane-provider-argocd-token
-spec:
-  package: 'ghcr.io/krateoplatformops/crossplane-provider-argocd-token:VERSION'
-  packagePullPolicy: IfNotPresent
-  controllerConfigRef:
-    name: debug-config
-EOF
+$ kubectl apply -f ./examples/provider.yaml
 ```
 
 Replace `VERSION` tag with the desired release.
