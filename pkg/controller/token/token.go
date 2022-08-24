@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/pkg/errors"
+	"k8s.io/client-go/tools/record"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
@@ -18,6 +19,8 @@ import (
 	tokensv1alpha1 "github.com/krateoplatformops/provider-argocd-token/apis/tokens/v1alpha1"
 	"github.com/krateoplatformops/provider-argocd-token/pkg/clients"
 	"github.com/krateoplatformops/provider-argocd-token/pkg/clients/accounts"
+
+	corev1 "k8s.io/api/core/v1"
 )
 
 const (
@@ -39,6 +42,7 @@ func Setup(mgr ctrl.Manager, o controller.Options) error {
 		managed.WithExternalConnecter(&connector{
 			kube: mgr.GetClient(),
 			log:  log,
+			rec:  recorder,
 		}),
 		managed.WithLogger(log),
 		managed.WithRecorder(event.NewAPIRecorder(recorder)))
@@ -53,6 +57,7 @@ func Setup(mgr ctrl.Manager, o controller.Options) error {
 type connector struct {
 	kube client.Client
 	log  logging.Logger
+	rec  record.EventRecorder
 }
 
 func (c *connector) Connect(ctx context.Context, mg resource.Managed) (managed.ExternalClient, error) {
@@ -68,7 +73,12 @@ func (c *connector) Connect(ctx context.Context, mg resource.Managed) (managed.E
 
 	c.log.Debug("Created session", "token", cfg.AuthToken)
 
-	return &external{kube: c.kube, log: c.log, cfg: cfg}, nil
+	return &external{
+		kube: c.kube,
+		log:  c.log,
+		cfg:  cfg,
+		rec:  c.rec,
+	}, nil
 }
 
 // An ExternalClient observes, then either creates, updates, or deletes an
@@ -77,6 +87,7 @@ type external struct {
 	kube client.Client
 	log  logging.Logger
 	cfg  *accounts.TokenProviderOptions
+	rec  record.EventRecorder
 }
 
 func (e *external) Observe(ctx context.Context, mg resource.Managed) (managed.ExternalObservation, error) {
@@ -126,11 +137,13 @@ func (e *external) Create(ctx context.Context, mg resource.Managed) (managed.Ext
 		return managed.ExternalCreation{}, err
 	}
 	e.log.Debug("Generated token", "account", spec.Account)
+	e.rec.Eventf(cr, corev1.EventTypeNormal, "TokenCreated", "Generated token for account: %s", spec.Account)
 
 	if err := clients.SetSecret(ctx, e.kube, &spec.WriteTokenSecretToRef, token); err != nil {
 		return managed.ExternalCreation{}, err
 	}
 	e.log.Debug("Saved token as secret", "account", spec.Account, "secret", spec.WriteTokenSecretToRef.Name)
+	e.rec.Eventf(cr, corev1.EventTypeNormal, "TokenSaved", "Saved token for account '%s' into '%s' secret", spec.Account, spec.WriteTokenSecretToRef.Name)
 
 	return managed.ExternalCreation{}, nil
 }
@@ -149,5 +162,10 @@ func (e *external) Delete(ctx context.Context, mg resource.Managed) error {
 
 	e.log.Debug("Deleting token secret", "account", spec.Account, "secret", spec.WriteTokenSecretToRef.Name)
 
-	return clients.DeleteSecret(ctx, e.kube, &spec.WriteTokenSecretToRef)
+	err := clients.DeleteSecret(ctx, e.kube, &spec.WriteTokenSecretToRef)
+	if err == nil {
+		e.rec.Eventf(cr, corev1.EventTypeNormal, "TokenDeleted", "Deleted token for account '%s' into '%s' secret", spec.Account, spec.WriteTokenSecretToRef.Name)
+	}
+
+	return err
 }
