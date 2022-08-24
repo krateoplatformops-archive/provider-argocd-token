@@ -4,10 +4,10 @@ import (
 	"context"
 
 	"github.com/pkg/errors"
-	"k8s.io/client-go/util/workqueue"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/controller"
+
+	"github.com/crossplane/crossplane-runtime/pkg/controller"
 
 	"github.com/crossplane/crossplane-runtime/pkg/event"
 	"github.com/crossplane/crossplane-runtime/pkg/logging"
@@ -27,29 +27,27 @@ const (
 )
 
 // Setup adds a controller that reconciles Token managed resources.
-func Setup(mgr ctrl.Manager, l logging.Logger, rl workqueue.RateLimiter) error {
+func Setup(mgr ctrl.Manager, o controller.Options) error {
 	name := managed.ControllerName(tokensv1alpha1.TokenGroupKind)
 
-	opts := controller.Options{
-		RateLimiter: ratelimiter.NewDefaultManagedRateLimiter(rl),
-	}
+	log := o.Logger.WithValues("controller", name)
 
-	log := l.WithValues("controller", name)
+	recorder := mgr.GetEventRecorderFor(name)
 
-	rec := managed.NewReconciler(mgr,
+	r := managed.NewReconciler(mgr,
 		resource.ManagedKind(tokensv1alpha1.TokenGroupVersionKind),
 		managed.WithExternalConnecter(&connector{
 			kube: mgr.GetClient(),
 			log:  log,
 		}),
 		managed.WithLogger(log),
-		managed.WithRecorder(event.NewAPIRecorder(mgr.GetEventRecorderFor(name))))
+		managed.WithRecorder(event.NewAPIRecorder(recorder)))
 
 	return ctrl.NewControllerManagedBy(mgr).
 		Named(name).
-		WithOptions(opts).
+		WithOptions(o.ForControllerRuntime()).
 		For(&tokensv1alpha1.Token{}).
-		Complete(rec)
+		Complete(ratelimiter.NewReconciler(name, r, o.GlobalRateLimiter))
 }
 
 type connector struct {
