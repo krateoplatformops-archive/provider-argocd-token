@@ -42,9 +42,8 @@ type TokenStatus struct {
 
 // +kubebuilder:object:root=true
 
-// +kubebuilder:printcolumn:name="ID",type="string",JSONPath=".status.atProvider.id"
-// +kubebuilder:printcolumn:name="ACCOUNT",type="string",JSONPath=".status.atProvider.account"
-// +kubebuilder:printcolumn:name="EXPIRES",type="string",JSONPath=".status.atProvider.expiresIn"
+// +kubebuilder:printcolumn:name="READY",type="string",JSONPath=".status.conditions[?(@.type=='Ready')].status"
+// +kubebuilder:printcolumn:name="SYNCED",type="string",JSONPath=".status.conditions[?(@.type=='Synced')].status"
 // +kubebuilder:printcolumn:name="AGE",type="date",JSONPath=".metadata.creationTimestamp"
 // +kubebuilder:resource:scope=Cluster,categories={crossplane,managed,argocd}
 // +kubebuilder:subresource:status

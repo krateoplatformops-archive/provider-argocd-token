@@ -3,12 +3,12 @@ package token
 import (
 	"context"
 
+	xpv1 "github.com/crossplane/crossplane-runtime/apis/common/v1"
+	"github.com/crossplane/crossplane-runtime/pkg/controller"
 	"github.com/pkg/errors"
 	"k8s.io/client-go/tools/record"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-
-	"github.com/crossplane/crossplane-runtime/pkg/controller"
 
 	"github.com/crossplane/crossplane-runtime/pkg/event"
 	"github.com/crossplane/crossplane-runtime/pkg/logging"
@@ -111,6 +111,8 @@ func (e *external) Observe(ctx context.Context, mg resource.Managed) (managed.Ex
 	}
 
 	if len(token) > 0 {
+		cr.SetConditions(xpv1.Available())
+
 		// TODO handle token expiration?
 		return managed.ExternalObservation{
 			ResourceExists:   true,
@@ -129,6 +131,8 @@ func (e *external) Create(ctx context.Context, mg resource.Managed) (managed.Ext
 	if !ok {
 		return managed.ExternalCreation{}, errors.New(errNotToken)
 	}
+
+	cr.SetConditions(xpv1.Creating())
 
 	spec := cr.Spec.ForProvider.DeepCopy()
 
@@ -157,6 +161,8 @@ func (e *external) Delete(ctx context.Context, mg resource.Managed) error {
 	if !ok {
 		return errors.New(errNotToken)
 	}
+
+	cr.SetConditions(xpv1.Deleting())
 
 	spec := cr.Spec.ForProvider.DeepCopy()
 

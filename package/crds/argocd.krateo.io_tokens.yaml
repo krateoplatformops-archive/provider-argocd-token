@@ -20,14 +20,11 @@ spec:
   scope: Cluster
   versions:
   - additionalPrinterColumns:
-    - jsonPath: .status.atProvider.id
-      name: ID
+    - jsonPath: .status.conditions[?(@.type=='Ready')].status
+      name: READY
       type: string
-    - jsonPath: .status.atProvider.account
-      name: ACCOUNT
-      type: string
-    - jsonPath: .status.atProvider.expiresIn
-      name: EXPIRES
+    - jsonPath: .status.conditions[?(@.type=='Synced')].status
+      name: SYNCED
       type: string
     - jsonPath: .metadata.creationTimestamp
       name: AGE
